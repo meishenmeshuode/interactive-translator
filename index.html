@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+	<link rel="stytlesheet" href="style.css" />
+</head>
+<body>
+
+<svg id="skysvg" viewBox="100 0 100 100" preserveAspectRatio="none">
+  <defs>
+  
+    <linearGradient id="upgrad" x1="0" y1="0" x2="0" y2="1" color-interpolation="linearRGB">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="1"/>
+    </linearGradient>
+	<linearGradient id="downgrad" x1="0" y1="0" x2="0" y2="1" color-interpolation="linearRGB">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0.5"/>
+	</linearGradient>
+	<radialGradient id="outward">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.5" />
+	  <stop offset="50%" stop-color="#fff" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#fff" stop-opacity="0.5" />
+    </radialGradient>
+	<radialGradient id="inward" cy="0%" fy="0%" r="100%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.2" />
+	  <stop offset="40%" stop-color="#fff" stop-opacity="0.9" />
+	  <stop offset="50%" stop-color="#fff" stop-opacity="1" />
+	  <stop offset="99%" stop-color="#fff" stop-opacity="0.2" />
+      <stop offset="99.9%" stop-color="#fff" stop-opacity="0" />
+    </radialGradient>
+	<filter id="mountfilter" filterUnits="objectBoundingBox"
+            x="0%" y="0%" width="100%" height="100%">
+	<feDropShadow dx="0" dy="0" stdDeviation="0.2" />
+	</filter>
+    <filter id="scrollup" filterUnits="objectBoundingBox"
+            x="0%" y="0%" width="100%" height="300%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" result="noise" stitchTiles="stitch"/>
+      <feOffset dy="0" result="off1">
+        <animate attributeType="XML" attributeName="dy" 
+                 from="0" to="-300" dur="90s" repeatCount="indefinite" /> 
+      </feOffset>
+      <feOffset in="noise" dy="0" result="off2">
+        <animate attributeType="XML" attributeName="dy" 
+                 from="300" to="0" dur="90s" repeatCount="indefinite" /> 
+      </feOffset>
+      <feMerge result="scrolling-noise">
+        <feMergeNode in="off1"/>
+        <feMergeNode in="off2"/>
+      </feMerge>
+      <feComponentTransfer in="scrolling-noise" result="brighter-noise">
+        <feFuncA type="gamma" amplitude="1" exponent="0.5"/>
+      </feComponentTransfer>
+      <feComposite in="SourceGraphic" in2="brighter-noise" operator="in" result="gradient-noise"/>
+      <feComponentTransfer in="gradient-noise" result="threshold">
+        <feFuncR type="discrete" tableValues="0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1"/>
+        <feFuncG type="discrete" tableValues="0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1"/>
+        <feFuncB type="discrete" tableValues="0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1"/>
+        <feFuncA type="discrete" tableValues="0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1"/>
+      </feComponentTransfer>
+      <feFlood flood-color="#979797" result="color"/>
+      <feComposite in="color" in2="threshold"  operator="in" result="color-threshold"/>
+	   <feGaussianBlur in="color-threshold" stdDeviation="0.5" />
+    </filter>
+  </defs>
+
+  <rect x="100" y="0" width="100" height="100" fill="url(#inward)" filter="url(#scrollup)"/>
+  <!-- <rect x="100" y="0" width="100" height="100" fill="url(#outward)" filter="url(#scrolldown)"/> -->
+<!--   <polygon points="100,100 125,23 140,100" fill="url(#upgrad)" filter="url(#mountfilter)"/>
+  <polygon points="149,100 181,61 200,89 200,100" fill="url(#upgrad)" filter="url(#mountfilter)"/> -->
+
+</svg>
+<div id="skyline"></div>
+<div id="backgroundf"></div>
+<div id="ground"></div>
+<div id="translationOption">
+	<div id="translationSpan">Translation Tool</div>
+	<div id="avaStatusParent">
+	<svg id="avaStatus" viewBox='-20 -20 140 140'>
+	</svg>
+	</div>
+</div>
+<div id="basisDiv">
+	<div id="TLcorner"></div>
+	<div id="RBcorner"></div>
+	<div id="cornerD"></div>
+	<div style="position:relative">
+	<div style="display: flex;position:relative; z-index:0;"> 
+	<div contenteditable="true" draggable="false" id="message" > </div>
+	<svg id="canvasSVG" viewBox='0 0 512 149'></svg>
+	<div id="tooltip">
+		<div id="IfSeparated" class="Swapbtn">
+		<svg viewBox="0 0 270 100" width="70%" height="70%" style="fill: rgb(82, 82, 82);">
+		<path d="M195.5 5 200 35 165.5 25 174.5 19Q138.5 1 105.5 23A7.5 5 0 0195 15Q137-11 186.5 11M96.5 95 91 66 126.5 75 117.5 81Q153.5 99 186.5 77A7.5 5 0 01197 85Q155 111 105.5 89M62.5 22C49 8.5 8.5 4-.5 44.5L8.5 44.5C13 22 44.5 17.5 49 31 44.5 40 35.5 49 40 49-9.5 49-.5 107.5 44.5 98.5 53.5 94 53.5 94 62.5 85 71.5 98.5 89.5 98.5 85 98.5L85 89.5C89.5 89.5 71.5 89.5 71.5 71.5ZM53.5 67C53.5 76 49 85 44.5 89.5 8.5 94 8.5 58 44.5 58 44.5 58 49 44.5 53.5 44.5ZM271 1 240 100 210 100 240 1Z"></path>
+		</svg>
+		</div>
+	</div>
+	</div>
+	
+	<div id="translation">  </div>
+	</div>
+	<div id="userTranslation" >
+	<div>
+			<div contenteditable="true" id="inputSentence"  placeholder="Sentence"></div>
+			<div id="Translatebtn">Translation</div>
+	
+	</div>
+		<div id="translatonList">
+
+		</div>
+	</div>
+</div>
+<div id="downloadPanel">
+<div id="downloadprogress">
+<span>downloading...</span>
+<div id="downloadbar"></div>
+</div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
