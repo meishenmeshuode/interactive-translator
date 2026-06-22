@@ -8,6 +8,7 @@
 - 窗口下半部分带有一个辅助翻译器，以列表形式存储，负责备用/测试翻译
 - 数据保存在本地
 - 一个自制动态背景
-- 
+<img width="1910" height="929" alt="Screenshot" src="https://github.com/user-attachments/assets/bc8258b9-3875-4ae2-be9a-3185385f6cab" />
+
 需要在PC chrome v148及以上版本的Google Chrome上运行,初次运行可能需要下载Gemini Nano模型文件(3~4GB，一般浏览器已经自动下载)
 
