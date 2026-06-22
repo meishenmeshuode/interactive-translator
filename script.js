@@ -105,7 +105,7 @@ const translatonList=document.getElementById("translatonList");
 const canvasSVG=document.getElementById("canvasSVG");
 const polygon1=document.getElementById("pointerSVG1");
 const TLcorner=document.getElementById("TLcorner");const RBcorner=document.getElementById("RBcorner");const cornerD=document.getElementById("cornerD");
-let previouseSelected={start:0,end:0};let encodedParag='';
+let previouseSelected={start:0,end:0};
 editor.addEventListener("dragstart",e=>{e.preventDefault();})
 editor.addEventListener("click",(e)=>{setTimeout(()=>{if(document.activeElement===editor){checkselected(getselectionIndex())};},0);})
 
@@ -143,7 +143,7 @@ if(end-start===1){
 	//if(end>start){renderSVG(polygon1,{x:SelectRect.left,y:SelectRect.top},{x:SelectRect.right,y:SelectRect.bottom},{x:SepRect.x,y:SepRect.y+SepRect.height})}else{
 	//renderSVG(polygon1,{x:0,y:0},{x:0,y:0},{x:0,y:0});
 	//}
-	const Subedstring=encodedParag.substring(start,end);
+	const Subedstring=tm_unit.encodedParag.substring(start,end);
 	if(/^\$+$/.test(Subedstring)){
 		ifseparated.IsSep=true;
 		tooltipStatechange("select");
@@ -152,53 +152,55 @@ if(end-start===1){
 	}
  }
 }
-function* IfsepstateChange(){
+/* function* IfsepstateChange(){
 while(1){
 	if(ifseparated.IsSep===false){
 		ifseparated.IsSep=true;
-		encodedParag=encodedParag.slice(0,start)+'$'+encodedParag.slice(end);
+		tm_unit.encodedParag=tm_unit.encodedParag.slice(0,start)+'$'+tm_unit.encodedParag.slice(end);
 	}else{ifseparated.IsSep=false;
-		encodedParag=encodedParag.slice(0,start)+editor.textContent.slice(start,end)+encodedParag.slice(end);
+		tm_unit.encodedParag=tm_unit.encodedParag.slice(0,start)+editor.textContent.slice(start,end)+tm_unit.encodedParag.slice(end);
 	}
 	
 }
-}
+} */
 function OnEditorUpdate(records,observer){
 	for (const record of records){
 	 if(record.target.nodeType===3){
 	 const newlength=record.target.length;
 	 const newvalue=record.target.textContent;
 	 const oldvalue=record.oldValue;
+	 localStorage.setItem("EDITORPRAG",newvalue);
 	 if(previouseSelected.end>previouseSelected.start){
-	  encodedParag=encodedParag.slice(0,previouseSelected.start)+encodedParag.slice(previouseSelected.end);
-	  console.log("-".concat(oldvalue.slice(previouseSelected.start,previouseSelected.end),'\n',encodedParag));
+	  tm_unit.encodedParag=tm_unit.encodedParag.slice(0,previouseSelected.start)+tm_unit.encodedParag.slice(previouseSelected.end);
+	  console.log("-".concat(oldvalue.slice(previouseSelected.start,previouseSelected.end),'\n',tm_unit.encodedParag));
 	 }
-	 if(newlength>=encodedParag.length){
-	  const diffvalue=newvalue.slice(previouseSelected.start,previouseSelected.start+newlength-encodedParag.length).replaceAll("$","/").replaceAll("。","$");
-	  encodedParag=encodedParag.slice(0,previouseSelected.start).concat(diffvalue,encodedParag.slice(previouseSelected.start));
-	  console.log("+".concat(diffvalue,'\n',encodedParag));
+	 if(newlength>=tm_unit.encodedParag.length){
+	  const diffvalue=newvalue.slice(previouseSelected.start,previouseSelected.start+newlength-tm_unit.encodedParag.length).replaceAll("$","/").replaceAll("。","$");
+	  tm_unit.encodedParag=tm_unit.encodedParag.slice(0,previouseSelected.start).concat(diffvalue,tm_unit.encodedParag.slice(previouseSelected.start));
+	  console.log("+".concat(diffvalue,'\n',tm_unit.encodedParag));
 	  }else{
-	  const diffvalue=oldvalue.slice(previouseSelected.start+newlength-encodedParag.length,previouseSelected.start);
-	  encodedParag=encodedParag.slice(0,previouseSelected.start+newlength-encodedParag.length).concat(encodedParag.slice(previouseSelected.start));
-	  console.log("-".concat(diffvalue,'\n',encodedParag));
+	  const diffvalue=oldvalue.slice(previouseSelected.start+newlength-tm_unit.encodedParag.length,previouseSelected.start);
+	  tm_unit.encodedParag=tm_unit.encodedParag.slice(0,previouseSelected.start+newlength-tm_unit.encodedParag.length).concat(tm_unit.encodedParag.slice(previouseSelected.start));
+	  console.log("-".concat(diffvalue,'\n',tm_unit.encodedParag));
 	  }
 	 }
 	}
 	
-	const sentList=encodedParag.split("$");
-	if(sentList[sentList.length-1]==="")sentList.pop();
+	const sentList=tm_unit.encodedParag.split("$");
 	//if(modelinited)
-	sentencetrans.TMapUpd(sentList);
-	sentencetrans.CMapUpd(sentList);
+	localStorage.setItem("ENCODEDPRAG",tm_unit.encodedParag);
+	tm_unit.TMapUpd(sentList);
+	tm_unit.CMapUpd(sentList);
 	if(window.getSelection().anchorNode!==null){getselectionIndex();}
 }
 function UpdTranslate(translation){
 translatediv.textContent=translation;
 }
-class SentenceTrans{
+class TranslationMaintain{
 	constructor(){
 	 this.TMap=new MapwithPrevious();
 	 this.CMap=new MapwithPrevious();
+	 this.encodedParag='';
 	}
 	TMapUpd(sentList){
 		for (const sentence of sentList){
@@ -207,7 +209,8 @@ class SentenceTrans{
 				this.TMap.set(sentence,translation);
 				new Promise((resolve,reject)=>{
 				requestTrans(sentence,resolve);
-				}).then((v)=>{this.TMap.set(sentence,v);},e=>{})
+				}).then((v)=>{this.TMap.set(sentence,v);
+				localStorage.setItem("TRANSLATION_OF:"+sentence,v);},e=>{})
 			}
 		}
 	}
@@ -215,10 +218,29 @@ class SentenceTrans{
 		let Totallength=0;
 		this.CMap.clear();
 		for(const sentence of sentList){
-			Totallength+=sentence.length+1;
+			Totallength+=sentence.length+1;//Don't mess with it. every sentence requires to have its unique key in CMap, even if it's an empty string
 			this.CMap.set(Totallength,sentence);
-		}
+		} 
 	}
+	recoverData() {
+		let FirstLaunch=true;
+	for (let i = 0; i < localStorage.length; i++) {
+		if(/^ENCODEDPRAG/.test(localStorage.key(i))===true){
+			this.encodedParag=localStorage.getItem(localStorage.key(i));		
+		}
+		if(/^EDITORPRAG/.test(localStorage.key(i))===true){
+			editor.childNodes[0].data=localStorage.getItem(localStorage.key(i));
+			FirstLaunch=false;			
+		}
+		if(/^TRANSLATION_OF:/.test(localStorage.key(i))===true){
+			this.TMap.set(localStorage.key(i).slice("TRANSLATION_OF:".length),localStorage.getItem(localStorage.key(i)));
+		}
+		}
+	const sentList=this.encodedParag.split("$");
+    this.TMapUpd(sentList);
+	this.CMapUpd(sentList);
+	return FirstLaunch;
+}
 	
 }
 class BasisDiv{
@@ -290,7 +312,7 @@ class BasisDiv{
 		}
 	}
 }
-function CoordstoCaret(e){//working on...
+function CoordstoCaret(e){
 	let offset;
 	if(document.caretPositionFromPoint){
 		const Caret = document.caretPositionFromPoint(e.clientX, e.clientY);
@@ -299,19 +321,20 @@ function CoordstoCaret(e){//working on...
 		const Caret = document.caretRangeFromPoint(e.clientX,e.clientY);
 		offset = Caret.startOffset;
 		}
-		const sentenceIter=sentencetrans.CMap.keys();
+		const sentenceIter=tm_unit.CMap.keys();
 		let Iterobj=sentenceIter.next();let Sentence;
 		while(Iterobj.done===false){
 			if(Iterobj.value>offset){		
-				break;
+				break;//value will always be found before iter done, even if pointer moved out of last sentence.
 			}
 			Iterobj=sentenceIter.next();
 		}
-		Sentence=sentencetrans.CMap.get(Iterobj.value);		
-		
-		if(encodedParag.slice(offset,offset+1)==="$"){renderSVGfromindex(offset,offset+1,"highlightSVG2");tooltipStatechange("hover_sep");}
+
+		Sentence=tm_unit.CMap.get(Iterobj.value);		
+			
+		if(tm_unit.encodedParag.slice(offset,offset+1)==="$"){renderSVGfromindex(offset,offset+1,"highlightSVG2");tooltipStatechange("hover_sep");}
 		else{renderSVGfromindex(sentenceIter.previous(),Iterobj.value,"highlightSVG1");tooltipStatechange("hover");}
-		UpdTranslate(sentencetrans.TMap.get(Sentence));
+		UpdTranslate(tm_unit.TMap.get(Sentence));
 		console.log(Sentence);
 
 }
@@ -331,6 +354,11 @@ async function updateTransList(INPUTsentence){
 async function requestTrans(sentence,resolve_p){
 	//const messages=[{role:"user",content:"translate this sentence into English in 3 different phrasing: "+sentence}];
 	//const reply=await engine.chat.completions.create({messages,extra_body:{enable_thinking:false},})
+	if(sentence===""){
+		const reply="";
+		resolve_p(reply);
+		return reply;
+	}else{
 	const session = await LanguageModel.create({
 	expectedOutputs: [
 		{ type: "text", languages: ["en"] }
@@ -340,6 +368,7 @@ async function requestTrans(sentence,resolve_p){
 	session.destroy();
 	if(resolve_p!==undefined){resolve_p(reply);};
 	return reply;
+	}
 }
 function renderSVG(polygon,...points){
 for (let i=0;i<points.length;i++){
@@ -360,7 +389,8 @@ previousHighlight.forEach(item=>item?.remove());
 canvasSVG.querySelector(".highlightSVG2")?.remove();
 const range=document.createRange();
 range.setStart(editor.childNodes[0],start);
-range.setEnd(editor.childNodes[0],end);
+const normalizedEnd=Math.min(editor.childNodes[0].length,end);
+range.setEnd(editor.childNodes[0],normalizedEnd);
 const rects=range.getClientRects();
 for (const item of rects){
 const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -378,14 +408,15 @@ if(end-start>0){
 		ifseparated.IsSep=true;
 		let i=0;let Sstring='';
 		while(i<end-start){Sstring=Sstring.concat("$");i++;}
-		encodedParag=encodedParag.slice(0,start)+Sstring+encodedParag.slice(end);
+		tm_unit.encodedParag=tm_unit.encodedParag.slice(0,start)+Sstring+tm_unit.encodedParag.slice(end);
 	}else{
 		ifseparated.IsSep=false;
-		encodedParag=encodedParag.slice(0,start)+editor.textContent.slice(start,end)+encodedParag.slice(end);
+		tm_unit.encodedParag=tm_unit.encodedParag.slice(0,start)+editor.textContent.slice(start,end)+tm_unit.encodedParag.slice(end);
 	}
-	const sentList=encodedParag.split("$");
-	sentencetrans.TMapUpd(sentList);
-	sentencetrans.CMapUpd(sentList);
+	const sentList=tm_unit.encodedParag.split("$");
+	localStorage.setItem("ENCODEDPRAG",tm_unit.encodedParag);
+	tm_unit.TMapUpd(sentList);
+	tm_unit.CMapUpd(sentList);
 }
 }
 const tooltipStatechange= (function(){
@@ -428,16 +459,16 @@ const initProgressCallback = (progress) => {
 //CreateMLCEngine("Qwen3-0.6B-q0f32-MLC", { initProgressCallback }).then((v)=>{
 	//engine=v;
 	//modelinited=true;
-	//const sentList=encodedParag.split("$");
-	//sentencetrans.TMapUpd(sentList);
+	//const sentList=tm_unit.encodedParag.split("$");
+	//tm_unit.TMapUpd(sentList);
 	//editor.addEventListener("mousemove",CoordstoCaret)
 	//Translatebtn.addEventListener("click",(e)=>{updateTransList(inputSentence.textContent);e.stopPropagation();})
 	//});
 
 //editor.addEventListener("mousemove",CoordstoCaret)//remember to comment out
-const sentencetrans=new SentenceTrans();
-//encodedParag=editor.textContent.replaceAll("$","/").replaceAll("。","$");
-
+const tm_unit=new TranslationMaintain();
+//tm_unit.encodedParag=editor.textContent.replaceAll("$","/").replaceAll("。","$");
+const FirstLaunch=tm_unit.recoverData();
 //const ifseparateState=IfsepstateChange();
 const resizeObserver=new ResizeObserver(entries=>{for(let entry of entries){
 	if(editor.getClientRects()[0]!==undefined){
@@ -450,10 +481,14 @@ resizeObserver.observe(editor);
 
 const observer=new MutationObserver((records,observer)=>{OnEditorUpdate(records,observer)});
 observer.observe(editor, {subtree:true,characterDataOldValue:true,characterData:true});
-editor.childNodes[0].data="这是一个以拖拽，点击流程节点图为主要操作形式的大语言模型对话查看器, 由于我之前在使用Google ai studio时发现它的对话分支和查看功能较为麻烦：无论在那一层分支对话，它们都只会一同并列在左侧栏里，难以确定想要的那个对话分支。每次切换对话操作都需要等待服务器的响应并定位到那个节点，思路很容易被打断。因此，我学习并开发了此工程,目的主要是希望在用户在学习复杂知识结构时操作查看大量的大模型对话能够更加方便快捷。"
 
-const sentList=encodedParag.split("$");
-sentencetrans.TMapUpd(sentList);
+if(FirstLaunch){
+	editor.childNodes[0].data="这是一个以拖拽，点击流程节点图为主要操作形式的大语言模型对话查看器, 由于我之前在使用Google ai studio时发现它的对话分支和查看功能较为麻烦：无论在那一层分支对话，它们都只会一同并列在左侧栏里，难以确定想要的那个对话分支。每次切换对话操作都需要等待服务器的响应并定位到那个节点，思路很容易被打断。因此，我学习并开发了此工程,目的主要是希望在用户在学习复杂知识结构时操作查看大量的大模型对话能够更加方便快捷。"
+}
+
+//const sentList=tm_unit.encodedParag.split("$");
+//tm_unit.TMapUpd(sentList);
+
 editor.addEventListener("mousemove",CoordstoCaret)
 editor.addEventListener("mouseleave",clearSVG)
 Translatebtn.addEventListener("click",(e)=>{updateTransList(inputSentence.textContent);e.stopPropagation();})
